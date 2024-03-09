@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8037268877008401950}
   - component: {fileID: 6365671703933449964}
   - component: {fileID: 2480253704263557199}
+  - component: {fileID: 570722939993791993}
   m_Layer: 0
   m_Name: CubeX
   m_TagString: Untagged
@@ -119,3 +120,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _renderer: {fileID: 8037268877008401950}
+  _movement: {fileID: 570722939993791993}
+--- !u!114 &570722939993791993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5285612515460797331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1a9b12e9ba469d459484ed373122aa1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  movementSpeed: 1
+  movementDistance: 1.5

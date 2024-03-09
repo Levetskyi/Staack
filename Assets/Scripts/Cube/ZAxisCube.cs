@@ -5,59 +5,27 @@ public class ZAxisCube : BaseCube
 {
     [SerializeField] private Renderer _renderer;
 
-    private bool movingForward = false;
-    private Vector3 _startPosition;
+    [SerializeField] private ZAxisMovement _movement;
 
     public override void SetColor(Color color)
     {
         _renderer.material.color = color;
     }
 
-    private void Start()
+    public override void Stop(Transform lastCubePosition)
     {
-        _startPosition = transform.position;
-    }
+        _movement.StopMove();
 
-    private void Update()
-    {
-        float movement = _moveSpeed * Time.deltaTime;
-
-        if (movingForward)
-        {
-            transform.Translate(Vector3.forward * movement);
-
-            if (transform.position.z >= _startPosition.z)
-            {
-                movingForward = false;
-            }
-        }
-        else
-        {
-            transform.Translate(Vector3.back * movement);
-
-            if (transform.position.z <= _startPosition.z - 3.0f)
-            {
-                movingForward = true;
-            }
-        }
-    }
-
-    public override void Stop(BaseCube lastCube)
-    {
-        StopAllCoroutines();
-
-        EventsHolder.AddScore();
-
-        float distanceDifference = GetDistanceDifference(lastCube.transform);
+        float distanceDifference = GetDistanceDifference(lastCubePosition);
 
         if (Mathf.Abs(distanceDifference) <= distanceTrashhold)
         {
             transform.position = new Vector3(
-                lastCube.transform.position.x,
+                lastCubePosition.position.x,
                 transform.position.y,
-                lastCube.transform.position.z);
+                lastCubePosition.position.z);
 
-            EventsHolder.PreciseTap(transform);
+            EventBus<PreciseTapEvent>.Raise(new PreciseTapEvent() { CubePosition = transform});
             VibrationHandler.Vibrate();
 
             enabled = false;
@@ -66,22 +34,17 @@ public class ZAxisCube : BaseCube
 
         float direction = distanceDifference > 0.0f ? 1.0f : -1.0f;
 
-        Split(lastCube.transform, distanceDifference, direction);
+        Split(lastCubePosition, distanceDifference, direction);
 
         enabled = false;
     }
 
     public override float GetDistanceDifference(Transform lastCube)
     {
-        float distanceDifference = transform.position.z - lastCube.position.z;
-
-        return distanceDifference;
+        return transform.position.z - lastCube.position.z;
     }
 
-    public override float GetMaximumDistanceDifference()
-    {
-        return transform.localScale.z;
-    }
+    public override float GetMaximumDistanceDifference() => transform.localScale.z;
 
     public override void Split(Transform lastCube, float distanceDifference, float direction)
     {
@@ -124,6 +87,11 @@ public class ZAxisCube : BaseCube
             transform.position.y,
             position);
 
-        EventsHolder.CubeSplit(newPosition, newScale, _renderer.material.color);
+        EventBus<CubeSplitEvent>.Raise(new CubeSplitEvent()  
+        { 
+            Position = newPosition, 
+            Scale = newScale,
+            Color = _renderer.material.color
+        });
     }
 }

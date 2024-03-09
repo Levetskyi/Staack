@@ -6,6 +6,8 @@ public class PoolerPresenter : MonoBehaviour
 
     private Pooler _pooler;
 
+    private EventBinding<CubeSplitEvent> _cubeSplitEventBinding;
+
     private void Awake()
     {
         _pooler = new Pooler(poolObject, transform); 
@@ -15,18 +17,20 @@ public class PoolerPresenter : MonoBehaviour
 
     private void OnEnable()
     {
-        EventsHolder.OnCubeSplit += SpawnDropCube;
+        _cubeSplitEventBinding = new EventBinding<CubeSplitEvent>(SpawnDropCube);
+
+        EventBus<CubeSplitEvent>.Register(_cubeSplitEventBinding);
     }
 
     private void OnDisable()
     {
-        EventsHolder.OnCubeSplit -= SpawnDropCube;
+        EventBus<CubeSplitEvent>.Deregister(_cubeSplitEventBinding);
     }
 
-    private void SpawnDropCube(Vector3 spawnPosition, Vector3 spawnScale, Color spawnColor)
+    private void SpawnDropCube(CubeSplitEvent splitEvent)
     {
-        var dropCube = _pooler.GetObject(spawnPosition, spawnScale);
+        var dropCube = _pooler.GetObject(splitEvent.Position, splitEvent.Scale);
 
-        dropCube.GetComponent<Renderer>().material.color = spawnColor;
+        dropCube.GetComponent<Renderer>().material.color = splitEvent.Color;
     }
 }

@@ -34,6 +34,7 @@ public class Pooler
                 _objectPool[i].transform.position = position;
                 _objectPool[i].transform.localScale = scale; 
                 _objectPool[i].SetActive(true);
+
                 return _objectPool[i];
             }
         }
@@ -41,18 +42,16 @@ public class Pooler
         GameObject newObject = CreateObject();
         newObject.transform.position = position;
         newObject.transform.localScale = scale;
-
         newObject.SetActive(true);
+
         return newObject;
     }
 
     private GameObject CreateObject()
     {
-        GameObject obj = Object.Instantiate(_object, _parent);
+        GameObject newObject = Object.Instantiate(_object, _parent);
+        _objectPool.Add(newObject);
 
-        obj.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-        obj.SetActive(false);
-        _objectPool.Add(obj);
-        return obj;
+        return newObject;
     }
 }

@@ -4,23 +4,20 @@ public class EndLevelPanelPresenter : MonoBehaviour
 {
     [SerializeField] private GameObject losePanel;
 
-    private void Awake()
-    {
-        losePanel.SetActive(false);
-    }
+    private EventBinding<EndLevelEvent> _endLevelEventBinding;
+
+    private void Awake() => losePanel.SetActive(false);
 
     private void OnEnable()
     {
-        EventsHolder.OnEndLevel += ShowLosePanel;
+        _endLevelEventBinding = new EventBinding<EndLevelEvent>(ShowLosePanel);
+        EventBus<EndLevelEvent>.Register(_endLevelEventBinding);
     }
 
     private void OnDisable()
     {
-        EventsHolder.OnEndLevel -= ShowLosePanel;
+        EventBus<EndLevelEvent>.Deregister(_endLevelEventBinding);
     }
 
-    private void ShowLosePanel()
-    {
-        losePanel.SetActive(true);
-    }
+    private void ShowLosePanel() => losePanel.SetActive(true);
 }

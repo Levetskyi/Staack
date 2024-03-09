@@ -5,57 +5,27 @@ public class XAxisCube : BaseCube
 {
     [SerializeField] private Renderer _renderer;
 
-    private bool movingForward = false;
-    private Vector3 _startPosition;
+    [SerializeField] private XAxisMovement _movement;
 
     public override void SetColor(Color color)
     {
         _renderer.material.color = color;
     }
 
-    private void Start()
+    public override void Stop(Transform lastCubePosition)
     {
-        _startPosition = transform.position;
-    }
+        _movement.StopMove();
 
-    private void Update()
-    {
-        float movement = _moveSpeed * Time.deltaTime;
-
-        if (movingForward)
-        {
-            transform.Translate(Vector3.right * movement);
-
-            if (transform.position.x >= _startPosition.x)
-            {
-                movingForward = false;
-            }
-        }
-        else
-        {
-            transform.Translate(Vector3.left * movement);
-
-            if (transform.position.x <= _startPosition.x - 3.0f)
-            {
-                movingForward = true;
-            }
-        }
-    }
-
-    public override void Stop(BaseCube lastCube)
-    {
-        EventsHolder.AddScore();
-
-        float distanceDifference = GetDistanceDifference(lastCube.transform);
+        float distanceDifference = GetDistanceDifference(lastCubePosition);
 
         if (Mathf.Abs(distanceDifference) <= distanceTrashhold)
         {
             transform.position = new Vector3(
-                lastCube.transform.position.x,
+                lastCubePosition.position.x,
                 transform.position.y,
-                lastCube.transform.position.z);
+                lastCubePosition.position.z);
 
-            EventsHolder.PreciseTap(transform);
+            EventBus<PreciseTapEvent>.Raise(new PreciseTapEvent() { CubePosition = transform});
             VibrationHandler.Vibrate();
 
             enabled = false;
@@ -64,16 +34,14 @@ public class XAxisCube : BaseCube
 
         float direction = distanceDifference > 0.0f ? 1.0f : -1.0f;
 
-        Split(lastCube.transform, distanceDifference, direction);
+        Split(lastCubePosition, distanceDifference, direction);
 
         enabled = false;
     }
 
-    public override float GetDistanceDifference(Transform lastCube)
+    public override float GetDistanceDifference(Transform lastCubePosition)
     {
-        float distanceDifference = transform.position.x - lastCube.position.x;
-
-        return distanceDifference;
+        return transform.position.x - lastCubePosition.position.x;
     }
 
     public override float GetMaximumDistanceDifference()
@@ -81,15 +49,15 @@ public class XAxisCube : BaseCube
         return transform.localScale.x;
     }
 
-    public override void Split(Transform lastCube, float distanceDifference, float direction)
+    public override void Split(Transform lastCubePosition, float distanceDifference, float direction)
     {
         //Shrinking existing block
 
-        float newXScale = lastCube.localScale.x - MathF.Abs(distanceDifference);
+        float newXScale = lastCubePosition.localScale.x - MathF.Abs(distanceDifference);
 
         float fallingBlockScale = transform.localScale.x - newXScale;
 
-        float newXPosition = lastCube.position.x + (distanceDifference / 2f);
+        float newXPosition = lastCubePosition.position.x + (distanceDifference / 2f);
 
         transform.localScale = new Vector3(
             newXScale,
@@ -121,7 +89,12 @@ public class XAxisCube : BaseCube
             position,
             transform.position.y,
             transform.position.z);
-
-        EventsHolder.CubeSplit(newPosition, newScale, _renderer.material.color);
+        
+        EventBus<CubeSplitEvent>.Raise(new CubeSplitEvent()
+        {
+            Position = newPosition,
+            Scale = newScale,
+            Color = _renderer.material.color
+        });
     }
 }

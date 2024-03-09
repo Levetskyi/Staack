@@ -5,6 +5,8 @@ public class ParticleHandler : MonoBehaviour
 {
     private ParticleSystem _particleSystem;
 
+    private EventBinding<PreciseTapEvent> _preciseTapEventBinding;
+
     private void Start()
     {
         _particleSystem = GetComponent<ParticleSystem>();
@@ -12,25 +14,26 @@ public class ParticleHandler : MonoBehaviour
 
     private void OnEnable()
     {
-        EventsHolder.OnPreciseTap += ShowParticles;
+        _preciseTapEventBinding = new EventBinding<PreciseTapEvent>(ShowParticles);
+        EventBus<PreciseTapEvent>.Register(_preciseTapEventBinding);
     }
 
     private void OnDisable()
     {
-        EventsHolder.OnPreciseTap -= ShowParticles;
+        EventBus<PreciseTapEvent>.Deregister(_preciseTapEventBinding);
     }
 
-    private void ShowParticles(Transform cubeTransform)
+    private void ShowParticles(PreciseTapEvent tapEvent)
     {
         Vector3 newPosition = new(
-            cubeTransform.position.x,
-            cubeTransform.position.y - (cubeTransform.localScale.y / 2),
-            cubeTransform.position.z
+            tapEvent.CubePosition.position.x,
+            tapEvent.CubePosition.position.y - (tapEvent.CubePosition.localScale.y / 2),
+            tapEvent.CubePosition.position.z
             );
 
         _particleSystem.transform.position = newPosition;
 
-        _particleSystem.transform.localScale = cubeTransform.localScale;
+        _particleSystem.transform.localScale = tapEvent.CubePosition.localScale;
 
         _particleSystem.Play();
     }

@@ -14,6 +14,9 @@ public class CameraMovement : MonoBehaviour
     private float _lookUpHeight = 0.0f;
     private float _initialPossition;
 
+    private EventBinding<EndLevelEvent> _eventBinding;
+    private EventBinding<TouchEvent> _touchEventBinding;
+
     private void Awake()
     {
         _camera = GetComponent<Camera>();
@@ -23,14 +26,18 @@ public class CameraMovement : MonoBehaviour
 
     private void OnEnable()
     {
-        EventsHolder.OnTouch += StartMovement;
-        EventsHolder.OnEndLevel += StartZoomOut;
+        _eventBinding = new EventBinding<EndLevelEvent>(StartZoomOut);
+        EventBus<EndLevelEvent>.Register(_eventBinding);
+
+        _touchEventBinding = new EventBinding<TouchEvent>(StartMovement);
+        EventBus<TouchEvent>.Register(_touchEventBinding);
     }
 
     private void OnDisable()
     {
-        EventsHolder.OnTouch -= StartMovement;
-        EventsHolder.OnEndLevel -= StartZoomOut;
+        EventBus<EndLevelEvent>.Deregister(_eventBinding); 
+
+        EventBus<TouchEvent>.Deregister(_touchEventBinding);
     }
 
     private void StartZoomOut()

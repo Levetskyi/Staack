@@ -5,6 +5,8 @@ public class InputReader : MonoBehaviour
 {
     private TouchControls _touchControls;
 
+    private EventBinding<EndLevelEvent> _endLevelEventBinding;
+
     private void Awake()
     {
         _touchControls = new TouchControls();
@@ -12,7 +14,8 @@ public class InputReader : MonoBehaviour
 
     private void OnEnable()
     {
-        EventsHolder.OnEndLevel += DisableInput;
+        _endLevelEventBinding = new EventBinding<EndLevelEvent>(DisableInput);
+        EventBus<EndLevelEvent>.Register(_endLevelEventBinding);
 
         _touchControls.Touch.PrimaryFingerContact.started += RegisterTouch;
 
@@ -21,7 +24,7 @@ public class InputReader : MonoBehaviour
 
     private void OnDisable()
     {
-        EventsHolder.OnEndLevel -= DisableInput;
+        EventBus<EndLevelEvent>.Deregister(_endLevelEventBinding);
 
         _touchControls.Touch.PrimaryFingerContact.started -= RegisterTouch;
 
@@ -30,7 +33,7 @@ public class InputReader : MonoBehaviour
 
     private void RegisterTouch(InputAction.CallbackContext ctx)
     {
-        EventsHolder.Touch();
+        EventBus<TouchEvent>.Raise(new TouchEvent());
     }
 
     private void DisableInput()

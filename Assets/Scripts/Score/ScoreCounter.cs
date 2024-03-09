@@ -12,6 +12,9 @@ public class ScoreCounter : MonoBehaviour
 
     private int _currentScore = 0;
 
+    private EventBinding<EndLevelEvent> _endLevelEventBinding;
+    private EventBinding<AddScoreEvent> _addScoreEventBinding;
+
     private void Awake()
     {
         _scoreText = GetComponent<TextMeshProUGUI>();
@@ -23,14 +26,19 @@ public class ScoreCounter : MonoBehaviour
 
     private void OnEnable()
     {
-        EventsHolder.OnAddScore += AddScore;
-        EventsHolder.OnEndLevel += CheckForNewHighScore;
+        _endLevelEventBinding = new EventBinding<EndLevelEvent>(CheckForNewHighScore);
+        EventBus<EndLevelEvent>.Register(_endLevelEventBinding);
+
+
+        _addScoreEventBinding = new EventBinding<AddScoreEvent>(AddScore);
+        EventBus<AddScoreEvent>.Register(_addScoreEventBinding);
     }
 
     private void OnDisable()
     {
-        EventsHolder.OnAddScore -= AddScore;
-        EventsHolder.OnEndLevel -= CheckForNewHighScore;
+        EventBus<EndLevelEvent>.Deregister(_endLevelEventBinding);
+
+        EventBus<AddScoreEvent>.Deregister(_addScoreEventBinding);
     }
 
     private void AddScore()

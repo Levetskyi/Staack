@@ -12,16 +12,18 @@ public class GameLoop : MonoBehaviour
     private Spawner _currentSpawner;
     private int spawnerIndex;
 
+    private EventBinding<TouchEvent> _touchEventBinding;
+
+
     private void OnEnable()
     {
-        EventsHolder.OnTouch += StopCube;
-        EventsHolder.OnEndLevel += StopGame;
+        _touchEventBinding = new EventBinding<TouchEvent>(StopCube);
+        EventBus<TouchEvent>.Register(_touchEventBinding);
     }
 
     private void OnDisable()
     {
-        EventsHolder.OnTouch -= StopCube;
-        EventsHolder.OnEndLevel -= StopGame;
+        EventBus<TouchEvent>.Deregister(_touchEventBinding);
     }
 
     public void StartGame()
@@ -31,6 +33,8 @@ public class GameLoop : MonoBehaviour
 
     private void StopGame()
     {
+        EventBus<EndLevelEvent>.Raise(new EndLevelEvent());
+
         currentCube.Die();
 
         enabled = false;
@@ -42,16 +46,18 @@ public class GameLoop : MonoBehaviour
             return;
 
         if (!currentCube.IsOnAllowedPosition(lastCube))
-        {
-            EventsHolder.EndLevel();
+        { 
+            StopGame();
             return;
         }
 
-        currentCube.Stop(lastCube);
+        currentCube.Stop(lastCube.transform);
 
         lastCube = currentCube;
 
         SpawnNewCube();
+
+        EventBus<AddScoreEvent>.Raise(new AddScoreEvent());
     }
 
     private void SpawnNewCube()
